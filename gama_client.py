@@ -1,10 +1,11 @@
 import json
 import time
 from enum import Enum
+from json.decoder import JSONObject
 
 import websockets
 import asyncio
-from typing import List, Dict
+from typing import List, Dict, Union
 
 
 class CommandType(Enum):
@@ -15,6 +16,7 @@ class CommandType(Enum):
     STEP_BACK   = "stepBack"
     RELOAD      = "reload"
     STOP        = "stop"
+    EXPRESSION  = "expression"
 
 
 class GamaClient:
@@ -22,35 +24,36 @@ class GamaClient:
     # STATIC METHODS
     @staticmethod
     def create_gama_command(command_type: str, socket_id: str, gaml_file_path: str = "", experiment_name: str = "",
-                            exp_id: str = "", end_condition: str = "", params: List[Dict] = None) \
+                            exp_id: str = "", end_condition: str = "", params: List[Dict] = None, expression: str = "")\
             -> Dict:
         """
         Function used to create a command to send to gama-server.
-        Arguments:
-            command_type:   a string among the enum CommandType, used in every command to know what kind of action
-                            must be executed by gama-server.
-            socket_id:  a string representing the id of a connection to gama-server.
-                        This id is given by gama-server directly after connecting to it.
-                        It must be transmitted with every command sent to the server.
-            gaml_file_path: a string representing the path to the gaml file to be run by gama-server
-                            (the path must be on the gama-server side)
-            experiment_name:    a string representing the name of the experiment in the gaml file to be run by gama-server
-            exp_id: a string representing the id of an experiment currently run by gama-server.
-                    Used to apply the command to a specific experiment.
-            end_condition:  a string representing an ending condition to stop an experiment run by gama-server.
-                            It must be expressed in the gaml language.
-            params: a list of dictionaries, each dictionary representing the initial value of an experiment parameter.
-                    Those parameters would be set at the initialization phase of the experiment.
-                    The parameters must follow this format:
-                    {
-                        "type": "<type of the parameter>",
-                        "value": "<value of the parameter>",
-                        "name": "<name of the parameter in the gaml file>"
-                    }
-                    Example value of params: [{"type": "float", "value": "0.75", "name": "conversion_rate"}]
-        Returns:
-            A dictionary containing all the parameters needed to interact with gama-server, you will still need to send
-            it to gama as a string afterward.
+        :param command_type:   a string among the enum CommandType, used in every command to know what kind of action
+                        must be executed by gama-server.
+        :param socket_id:  a string representing the id of a connection to gama-server.
+                    This id is given by gama-server directly after connecting to it.
+                    It must be transmitted with every command sent to the server.
+        :param gaml_file_path: a string representing the path to the gaml file to be run by gama-server
+                        (the path must be on the gama-server side)
+        :param experiment_name:    a string representing the name of the experiment in the gaml file to be run by gama-server
+        :param exp_id: a string representing the id of an experiment currently run by gama-server.
+                Used to apply the command to a specific experiment.
+        :param end_condition:  a string representing an ending condition to stop an experiment run by gama-server.
+                        It must be expressed in the gaml language.
+        :param params: a list of dictionaries, each dictionary representing the initial value of an experiment parameter.
+                Those parameters would be set at the initialization phase of the experiment.
+
+                The parameters must follow this format:
+                {
+                    "type": "<type of the parameter>",
+                    "value": "<value of the parameter>",
+                    "name": "<name of the parameter in the gaml file>"
+                }
+
+                Example value of params: [{"type": "float", "value": "0.75", "name": "conversion_rate"}]
+        :param expression: a string representing a gaml expression to be executed by gama-server.
+        :return:    A dictionary containing all the parameters needed to interact with gama-server, you will still need to send
+                    it to gama as a string afterward.
         """
         return {
             "type": command_type,
@@ -61,6 +64,7 @@ class GamaClient:
             "auto-export": False,
             "parameters": params,
             "until": end_condition,
+            "expr": expression,
         }
 
     # CLASS VARIABLES
@@ -92,7 +96,6 @@ class GamaClient:
         """
         Send a string to the currently connected gama-server
         :param message:
-        :return:
         """
         await self.socket.send(message)
 
@@ -111,7 +114,7 @@ class GamaClient:
         return self.socket is not None and self.socket.open()
 
     async def send_command(self, command_type: CommandType, gaml_file_path: str = "", experiment_name: str = "",
-                           exp_id: str = "", end_condition: str = "", params: List[Dict] = None):
+                           exp_id: str = "", end_condition: str = "", params: List[Dict] = None, expression: str = ""):
         """
         Sends a command to gama-server through the current connection.
         Only the command_type is mandatory for any call of the method, the other parameters could be required
@@ -123,15 +126,17 @@ class GamaClient:
         :param exp_id: the id of the experiment on which to run the command
         :param end_condition: the condition which will make gama-server end the simulation (written in gaml)
         :param params: the parameters to set at the initialization of the experiment.
+        :param expression: a string representing a gaml expression to be executed by gama-server.
         """
-        cmd = self.create_gama_command(command_type.value, self.socket_id, gaml_file_path, experiment_name,
-                                       exp_id, end_condition, params)
+        cmd = self.create_gama_command(str(command_type.value), self.socket_id, gaml_file_path, experiment_name,
+                                       exp_id, end_condition, params, expression)
         cmd_to_str = json.dumps(cmd, indent=0)
         await self.socket.send(cmd_to_str)
 
     async def send_command_return(self, command_type: CommandType, gaml_file_path: str = "", experiment_name: str = "",
                                   exp_id: str = "", end_condition: str = "",
-                                  params: List[Dict] = None, unpack_json: bool = False):
+                                  params: List[Dict] = None, expression: str = "", unpack_json: bool = False)\
+            -> Union[str, JSONObject]:
         """
         Same as send_command but wait for the answer from gama-server and can convert it to json depending on parameters
         :param command_type: the type of command to send, to pick among the values of CommandType
@@ -141,9 +146,16 @@ class GamaClient:
         :param end_condition: the condition which will make gama-server end the simulation (written in gaml)
         :param params: the parameters to set at the initialization of the experiment.
         :param unpack_json: boolean, if true unpack the answer from gama-server as a json object, else returns the raw text
+        :param expression: a string representing a gaml expression to be executed by gama-server.
         :return: the answer from gama-server after receiving the command from the client
         """
-        await self.send_command(command_type, gaml_file_path, experiment_name, exp_id, end_condition, params)
+        await self.send_command(command_type=command_type,
+                                gaml_file_path=gaml_file_path,
+                                experiment_name=experiment_name,
+                                exp_id=exp_id,
+                                end_condition=end_condition,
+                                params=params,
+                                expression=expression)
         res = await self.socket.recv()
         if unpack_json:
             res = json.loads(res)
@@ -235,5 +247,12 @@ class GamaClient:
         """
         res = await self.send_command_return(CommandType.STOP, exp_id=experiment_id)
         return res == CommandType.STOP.value
+
+    async def expression(self, experiment_id: str, expression: str) -> JSONObject:
+        res: JSONObject = await self.send_command_return(CommandType.EXPRESSION,
+                                                   exp_id=experiment_id,
+                                                   expression=expression,
+                                                   unpack_json=True)
+        return res["result"]
 
 

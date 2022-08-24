@@ -5,7 +5,6 @@ from gama_client.client import GamaClient
 
 async def main():
 
-	GamaClient()
 	MY_SERVER_URL = "localhost"
 	MY_SERVER_PORT = 6868
 	GAML_FILE_PATH_ON_SERVER = "/opt/gama-platform/headless/samples/predatorPrey/predatorPrey.gaml"

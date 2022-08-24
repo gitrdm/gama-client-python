@@ -1,6 +1,5 @@
 import json
 from enum import Enum
-from json.decoder import JSONObject
 
 import websockets
 import asyncio
@@ -135,7 +134,7 @@ class GamaClient:
     async def send_command_return(self, command_type: CommandType, gaml_file_path: str = "", experiment_name: str = "",
                                   exp_id: str = "", end_condition: str = "",
                                   params: List[Dict] = None, expression: str = "", unpack_json: bool = False)\
-            -> Union[str, JSONObject]:
+            -> Union[str, List, Dict]:
         """
         Same as send_command but wait for the answer from gama-server and can convert it to json depending on parameters
         :param command_type: the type of command to send, to pick among the values of CommandType
@@ -247,8 +246,8 @@ class GamaClient:
         res = await self.send_command_return(CommandType.STOP, exp_id=experiment_id)
         return res == CommandType.STOP.value
 
-    async def expression(self, experiment_id: str, expression: str) -> JSONObject:
-        res: JSONObject = await self.send_command_return(CommandType.EXPRESSION,
+    async def expression(self, experiment_id: str, expression: str) -> Union[str, List, Dict]:
+        res: Dict = await self.send_command_return(CommandType.EXPRESSION,
                                                    exp_id=experiment_id,
                                                    expression=expression,
                                                    unpack_json=True)

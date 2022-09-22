@@ -8,6 +8,8 @@ In your python environment, install the gama-client package with the command:
 pip install gama-client
 ```
 
+For advanced users, you can find the package on the [pypi website](https://pypi.org/project/gama-client/) and do it yourself instead of using the `pip` tool.
+
 You can check that everything went well by opening a python console and try the following line:
 
 ```

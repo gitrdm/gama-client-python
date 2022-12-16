@@ -21,15 +21,14 @@ If you don't see any error message then `gama-client` has been installed correct
 
 # Using it
 
-To use `gama-client` you first need to have a [gama-server](https://gama-platform.org/wiki/HeadlessServer) open. Then you can interact with it with the `GamaClient` class.
-Currently the available operations are:
+To use `gama-client` you first need to have a [gama-server](https://gama-platform.org/wiki/HeadlessServer) open. Then you can interact with it with the `GamaBaseClient` class.
+Currently, the available operations are:
  * connecting to gama-server
- * check if the connection is still alive
  * load an experiment on the server (compile + run the `init` block)
  * run an experiment
  * pause an experiment
- * execute one step of the experiment
- * rollback one step of the experiment (when available)
+ * execute N step(s) of the experiment
+ * rollback N step(s) of the experiment (when available)
  * reload an experiment
  * stop an experiment
  * ask gama-server to process a gaml expression (having an experiment as context)

@@ -33,6 +33,6 @@ Currently, the available operations are:
  * stop an experiment
  * ask gama-server to process a gaml expression (having an experiment as context)
  
- A complete working example is given in the `examples` directory, you just have to change the values of the variables `MY_SERVER_URL`, `MY_SERVER_PORT`, `GAML_FILE_PATH_ON_SERVER` and `EXPERIMENT_NAME` to the one corresponding to your own gama-server and experiment to try it.
+ A complete working example is given in the `examples` directory, you just have to change the values of the variables `MY_SERVER_URL`, `MY_SERVER_PORT`, `GAML_FILE_PATH_ON_SERVER`, `EXPERIMENT_NAME` and `MY_EXP_INIT_PARAMETERS` to the one corresponding to your own gama-server and experiment to try it.
  
  

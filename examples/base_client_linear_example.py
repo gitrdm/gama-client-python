@@ -42,8 +42,10 @@ async def main():
 
     MY_SERVER_URL = "localhost"
     MY_SERVER_PORT = 6868
-    GAML_FILE_PATH_ON_SERVER = "/opt/gama-platform/headless/samples/predatorPrey/predatorPrey.gaml"
+    GAML_FILE_PATH_ON_SERVER = r"/opt/gama-platform/headless/samples/predatorPrey/predatorPrey.gaml"
     EXPERIMENT_NAME = "prey_predatorExp"
+    MY_EXP_INIT_PARAMETERS = [{"type": "int", "name": "nb_preys_init", "value": 100}]
+
 
     experiment_id = ""
     client = GamaBaseClient(MY_SERVER_URL, MY_SERVER_PORT, message_handler)
@@ -53,7 +55,7 @@ async def main():
 
     print("initialize a gaml model")
     experiment_future = asyncio.get_running_loop().create_future()
-    await client.load(GAML_FILE_PATH_ON_SERVER, EXPERIMENT_NAME, True, True, True, [{"type": "int", "name": "nb_preys_init", "value": 100}])
+    await client.load(GAML_FILE_PATH_ON_SERVER, EXPERIMENT_NAME, True, True, True, MY_EXP_INIT_PARAMETERS)
     gama_response = await experiment_future
 
     try:

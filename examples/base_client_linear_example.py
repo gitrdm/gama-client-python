@@ -98,7 +98,7 @@ async def main():
     await client.step(experiment_id, 10, True)
     gama_response = await step_future
     if gama_response["type"] != MessageTypes.CommandExecutedSuccessfully.value:
-        print("Unable to execute 10 new steps in the experiment experiment", gama_response)
+        print("Unable to execute 10 new steps in the experiment", gama_response)
         return
 
     expression_future = asyncio.get_running_loop().create_future()
@@ -111,7 +111,7 @@ async def main():
     await client.stop(experiment_id)
     gama_response = await stop_future
     if gama_response["type"] != MessageTypes.CommandExecutedSuccessfully.value:
-        print("Unable to execute 10 new steps in the experiment experiment", gama_response)
+        print("Unable to stop the experiment", gama_response)
         return
 
 

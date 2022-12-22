@@ -1,5 +1,5 @@
 # Gama client python
- A python 3 client wrapper for gama-server, the headless version of the modeling platform [gama](https://gama-platform.org/).
+ A python 3 client wrapper for gama-server, the headless version of the modeling platform [gama](https://gama-platform.org/). The latest release is compatible with gama 1.9.0.
 
 # Installation
 In your python environment, install the gama-client package with the command:

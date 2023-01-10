@@ -74,13 +74,13 @@ class GamaBaseClient:
                     else:
                         await self.message_handler(js)
                 except Exception as js_ex:
-                    print("Unable to unpack gama-server messages as a json", js_ex)
+                    print("Unable to unpack gama-server messages as a json. Error:", js_ex, "Message received:", mess)
             except Exception as sock_ex:
                 print("Error while waiting for a message from gama-server. Exiting", sock_ex)
                 sys.exit(-1)
 
-    async def load(self, file_path, experiment_name: str, console: bool = False, status: bool = False,
-                   dialog: bool = False, parameters: List[Dict] = None, until: str = "", additional_data: Dict = None):
+    async def load(self, file_path: str, experiment_name: str, socket_id: str = "", console: bool = None, status: bool = None,
+                   dialog: bool = None, parameters: List[Dict] = None, until: str = "", additional_data: Dict = None):
         """Sends a command to load the experiment **experiment_name** from the file **file_path** (on the server side).
 
         **Note**
@@ -96,6 +96,7 @@ class GamaBaseClient:
 
         :param file_path: The path of the file containing the experiment to run
         :param experiment_name: the name of the experiment to run
+        :param socket_id: The socket that will be linked to the experiment, if empty uses current connection
         :param console: True if you want gama-server to redirect the simulation's console outputs
         :param status: True if you want gama-server to redirect the simulation's status changes
         :param dialog: True if you want gama-server to redirect the simulation's dialogs
@@ -111,14 +112,18 @@ class GamaBaseClient:
         """
         cmd = {
             "type": CommandTypes.Load.value,
-            "socket_id": self.socket_id,
             "model": file_path,
             "experiment": experiment_name,
-            "console": console,
-            "status": status,
-            "dialog": dialog,
         }
         # adding optional parameters
+        if socket_id != "":
+            cmd["socket_id"] = socket_id
+        if console is not None:
+            cmd["console"] = console
+        if status is not None:
+            cmd["status"] = status
+        if dialog is not None:
+            cmd["dialog"] = dialog
         if parameters:
             cmd["parameters"] = parameters
         if until and until != '':
@@ -139,56 +144,64 @@ class GamaBaseClient:
         }
         await self.socket.send(json.dumps(cmd))
 
-    async def play(self, exp_id: str, sync: bool = False, additional_data: Dict = None):
+    async def play(self, exp_id: str, socket_id: str = "", sync: bool = None, additional_data: Dict = None):
         """
         Sends a command to run the experiment **exp_id**
 
         :param exp_id: the id of the experiment on which the command applies
             (sent by gama-server after the load command)
+        :param socket_id: The socket_id that is linked to the experiment, if empty gama will use current connection
         :param sync: boolean used to specify if the simulation must send a message once the command is received, or wait
             until the end condition is reached. Note: it only works if you previously set a value for the parameter
-            *until* in the "load" command.
+            "until" in the "load" command.
         :param additional_data: A dictionary containing any additional data you want to send to gama server. Those will
             be sent back with the command's answer. (for example an id for the client's internal use)
         :return: nothing
         """
         cmd = {
             "type": CommandTypes.Play.value,
-            "socket_id": self.socket_id,
             "exp_id": exp_id,
-            "sync": sync,
         }
+        # adding optional parameters
+        if sync is not None:
+            cmd["sync"] = sync
+        if socket_id != "":
+            cmd["socket_id"] = socket_id
         if additional_data:
             cmd.update(additional_data)
 
         await self.socket.send(json.dumps(cmd))
 
-    async def pause(self, exp_id: str, additional_data: Dict = None):
+    async def pause(self, exp_id: str, socket_id: str = "", additional_data: Dict = None):
         """
         Sends a command to pause the experiment **exp_id**
 
         :param exp_id: the id of the experiment to run on which the command applies
             (sent by gama-server after the load command)
+        :param socket_id: The socket_id that is linked to the experiment, if empty gama will use current connection
         :param additional_data: A dictionary containing any additional data you want to send to gama server. Those will
             be sent back with the command's answer. (for example an id for the client's internal use)
         :return: nothing
         """
         cmd = {
             "type": CommandTypes.Pause.value,
-            "socket_id": self.socket_id,
             "exp_id": exp_id,
         }
+        # adding optional parameters
+        if socket_id != "":
+            cmd["socket_id"] = socket_id
         if additional_data:
             cmd.update(additional_data)
 
         await self.socket.send(json.dumps(cmd))
 
-    async def step(self, exp_id: str, nb_step: int = 1, sync: bool = False, additional_data: Dict = None):
+    async def step(self, exp_id: str, socket_id: str = "", nb_step: int = 1, sync: bool = False, additional_data: Dict = None):
         """
         Sends a command to run **nb_step** of the experiment **exp_id**
 
         :param exp_id: the id of the experiment on which the command applies
             (sent by gama-server after the load command)
+        :param socket_id: The socket_id that is linked to the experiment, if empty gama will use current connection
         :param nb_step: the number of steps to execute
         :param sync: If True gama-server will wait for the step(s) to finish before sending a success message, else
             the message will be sent as soon as the steps are planned by gama-server.
@@ -198,10 +211,13 @@ class GamaBaseClient:
         """
         cmd = {
             "type": CommandTypes.Step.value,
-            "socket_id": self.socket_id,
             "exp_id": exp_id,
-            "sync": sync,
         }
+        # adding optional parameters
+        if socket_id != "":
+            cmd["socket_id"] = socket_id
+        if sync is not None:
+            cmd["sync"] = sync
         if nb_step > 1:
             cmd["nb_step"] = nb_step
         if additional_data:
@@ -209,12 +225,13 @@ class GamaBaseClient:
 
         await self.socket.send(json.dumps(cmd))
 
-    async def step_back(self, exp_id: str, nb_step: int = 1, sync: bool = False, additional_data: Dict = None):
+    async def step_back(self, exp_id: str, socket_id: str = "", nb_step: int = 1, sync: bool = None, additional_data: Dict = None):
         """
         Sends a command to run **nb_step** steps backwards of the experiment **exp_id**
 
         :param exp_id: the id of the experiment on which the command applies
             (sent by gama-server after the load command)
+        :param socket_id: The socket_id that is linked to the experiment, if empty gama will use current connection
         :param nb_step: the number of steps to execute
         :param sync: If True gama-server will wait for the step(s) to finish before sending a success message, else
             the message will be sent as soon as the steps are planned by gama-server.
@@ -224,10 +241,13 @@ class GamaBaseClient:
         """
         cmd = {
             "type": CommandTypes.StepBack.value,
-            "socket_id": self.socket_id,
             "exp_id": exp_id,
-            "sync": sync,
         }
+        # adding optional parameters
+        if socket_id != "":
+            cmd["socket_id"] = socket_id
+        if sync is not None:
+            cmd["sync"] = sync
         if nb_step > 1:
             cmd["nb_step"] = nb_step
         if additional_data:
@@ -235,33 +255,37 @@ class GamaBaseClient:
 
         await self.socket.send(json.dumps(cmd))
 
-    async def stop(self, exp_id: str, additional_data: Dict = None):
+    async def stop(self, exp_id: str, socket_id: str = "", additional_data: Dict = None):
         """
         Sends a command to stop (kill) the experiment **exp_id**
 
         :param exp_id: the id of the experiment on which the command applies
             (sent by gama-server after the load command)
+        :param socket_id: The socket_id that is linked to the experiment, if empty gama will use current connection
         :param additional_data: A dictionary containing any additional data you want to send to gama server. Those will
             be sent back with the command's answer. (for example an id for the client's internal use)
         :return: nothing
         """
         cmd = {
             "type": CommandTypes.Stop.value,
-            "socket_id": self.socket_id,
             "exp_id": exp_id,
         }
+        # adding optional parameters
+        if socket_id != "":
+            cmd["socket_id"] = socket_id
         if additional_data:
             cmd.update(additional_data)
 
         await self.socket.send(json.dumps(cmd))
 
-    async def reload(self, exp_id: str, parameters: List[Dict] = None, until: str = "", additional_data: Dict = None):
+    async def reload(self, exp_id: str, socket_id: str = "", parameters: List[Dict] = None, until: str = "", additional_data: Dict = None):
         """
         Sends a command to reload (kill + load again) the experiment **exp_id**. You can reset the experiment's
         parameters as well as the end condition.
 
         :param exp_id: the id of the experiment on which the command applies
             (sent by gama-server after the load command)
+        :param socket_id: The socket_id that is linked to the experiment, if empty gama will use current connection
         :param parameters: a list of dictionaries, each dictionary representing the initial value of an experiment parameter.
             They will be set at the initialization phase of the experiment.
         :param until: a string representing an ending condition to stop an experiment run by gama-server.
@@ -272,10 +296,11 @@ class GamaBaseClient:
         """
         cmd = {
             "type": CommandTypes.Reload.value,
-            "socket_id": self.socket_id,
             "exp_id": exp_id,
         }
         # adding optional parameters
+        if socket_id != "":
+            cmd["socket_id"] = socket_id
         if parameters:
             cmd["parameters"] = parameters
         if until and until != '':
@@ -284,12 +309,13 @@ class GamaBaseClient:
             cmd.update(additional_data)
         await self.socket.send(json.dumps(cmd))
 
-    async def expression(self, exp_id: str, expression: str, additional_data: Dict = None):
+    async def expression(self, exp_id: str, expression: str, socket_id: str = "", additional_data: Dict = None):
         """
         Sends a command to evaluate a gaml expression in the experiment **exp_id**
 
         :param exp_id: the id of the experiment on which the command applies
             (sent by gama-server after the load command)
+        :param socket_id: The socket_id that is linked to the experiment, if empty gama will use current connection
         :param expression: the expression to evaluate. Must follow the gaml syntax.
         :param additional_data: A dictionary containing any additional data you want to send to gama server. Those will
             be sent back with the command's answer. (for example an id for the client's internal use)
@@ -298,10 +324,12 @@ class GamaBaseClient:
         """
         cmd = {
             "type": CommandTypes.Expression.value,
-            "socket_id": self.socket_id,
             "exp_id": exp_id,
             "expr": expression
         }
+        # adding optional parameters
+        if socket_id != "":
+            cmd["socket_id"] = socket_id
         if additional_data:
             cmd.update(additional_data)
 

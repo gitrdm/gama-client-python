@@ -1,4 +1,3 @@
-import time
 import asyncio
 from asyncio import Future
 from typing import Dict
@@ -31,6 +30,7 @@ async def message_handler(message: Dict):
         elif message["command"]["type"] == CommandTypes.Stop.value:
             stop_future.set_result(message)
 
+
 async def main():
 
     global experiment_future
@@ -40,14 +40,13 @@ async def main():
     global step_future
     global stop_future
 
+    # Experiment and Gama-server constants
     MY_SERVER_URL = "localhost"
     MY_SERVER_PORT = 6868
     GAML_FILE_PATH_ON_SERVER = r"/opt/gama-platform/headless/samples/predatorPrey/predatorPrey.gaml"
     EXPERIMENT_NAME = "prey_predatorExp"
     MY_EXP_INIT_PARAMETERS = [{"type": "int", "name": "nb_preys_init", "value": 100}]
 
-
-    experiment_id = ""
     client = GamaBaseClient(MY_SERVER_URL, MY_SERVER_PORT, message_handler)
 
     print("connecting to Gama server")
@@ -60,8 +59,8 @@ async def main():
 
     try:
         experiment_id = gama_response["content"]["exp_id"]
-    except:
-        print("error while initializing", gama_response)
+    except Exception as e:
+        print("error while initializing", gama_response, e)
         return
 
     print("initialization successful, running the model")

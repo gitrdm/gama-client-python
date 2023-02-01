@@ -43,7 +43,7 @@ async def main():
     # Experiment and Gama-server constants
     MY_SERVER_URL = "localhost"
     MY_SERVER_PORT = 6868
-    GAML_FILE_PATH_ON_SERVER = r"/opt/gama-platform/headless/samples/predatorPrey/predatorPrey.gaml"
+    GAML_FILE_PATH_ON_SERVER = r"D:\Gama\headless\samples\predatorPrey\predatorPrey.gaml"
     EXPERIMENT_NAME = "prey_predatorExp"
     MY_EXP_INIT_PARAMETERS = [{"type": "int", "name": "nb_preys_init", "value": 100}]
 
@@ -58,7 +58,7 @@ async def main():
     gama_response = await experiment_future
 
     try:
-        experiment_id = gama_response["content"]["exp_id"]
+        experiment_id = gama_response["content"]
     except Exception as e:
         print("error while initializing", gama_response, e)
         return

@@ -152,6 +152,13 @@ For reference: this documentation is based on this [tutorial](https://packaging.
 
 * increment the version number in `pyproject.toml`
 * commit your changes to github
+* make sure you installed the required tools by running
+```
+python -m pip install --upgrade build
+```
+```
+python -m pip install --upgrade twine
+```
 * in the project's folder, to build the library, run
 ```
 python -m build

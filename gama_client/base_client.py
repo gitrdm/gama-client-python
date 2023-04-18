@@ -81,7 +81,7 @@ class GamaBaseClient:
                 sys.exit(-1)
 
     async def load(self, file_path: str, experiment_name: str, console: bool = None, status: bool = None,
-                   dialog: bool = None, parameters: List[Dict] = None, until: str = "", socket_id: str = "",
+                   dialog: bool = None, runtime: bool = None, parameters: List[Dict] = None, until: str = "", socket_id: str = "",
                    additional_data: Dict = None):
         """Sends a command to load the experiment **experiment_name** from the file **file_path** (on the server side).
 
@@ -102,6 +102,7 @@ class GamaBaseClient:
         :param console: True if you want gama-server to redirect the simulation's console outputs
         :param status: True if you want gama-server to redirect the simulation's status changes
         :param dialog: True if you want gama-server to redirect the simulation's dialogs
+        :param runtime: True if you want gama-server to redirect the simulation's runtime errors
         :param parameters: A list of dictionaries, each dictionary representing the initial value of an experiment parameter.
             They will be set at the initialization phase of the experiment.
         :param until: A string representing an ending condition to stop an experiment run by gama-server.
@@ -126,6 +127,8 @@ class GamaBaseClient:
             cmd["status"] = status
         if dialog is not None:
             cmd["dialog"] = dialog
+        if runtime is not None:
+            cmd["runtime"] = runtime
         if parameters:
             cmd["parameters"] = parameters
         if until and until != '':

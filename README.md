@@ -1,5 +1,5 @@
 # Gama client
- Gama-client is a python wrapper for interacting with the headless mode (called gama-server) of the multi-agent modeling platform [gama](https://gama-platform.org/). The latest release is compatible with gama 1.9.1.
+ Gama-client is a python wrapper for interacting with the headless mode (called gama-server) of the modeling and simulation platform [gama](https://gama-platform.org/). The latest release is compatible with gama 1.9.1.
 This wrapper will take care of the connection with gama-server and of sending properly formatted requests to gama-server. It is made to fit the asynchronous nature of gama-server and thus makes it possible to handle multiple simulations at the same time, but the counterpart is that the users will still have to manage what to do with the received messages (command confirmation, simulation output, errors etc.) by themselves. We provide a working example that shows the architecture you can deploy if you still want to have a sequential execution.
 
 # Installation
